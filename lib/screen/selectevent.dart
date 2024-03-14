@@ -1,5 +1,7 @@
 // import 'dart:math';
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_calender/database/dbhelper.dart';
 import 'package:flutter_calender/screen/home.dart';
@@ -170,7 +172,10 @@ class _SelecteventState extends State<Selectevent> {
                       ? await dbHelper
                           .insert(Event(
                           title: titleController.text,
-                          fromDate: fromDate.toString(),
+                          fromDate: eventType.toString() == 'Event'
+                              ? fromDate.toString()
+                              : FormatDate.chnageDateFormat(
+                                  fromDate, 'yyyy-MM-dd'),
                           eventType: eventType,
                           toDate: toDate.toString(),
                           background: l1[index]['label'] == true
@@ -180,8 +185,8 @@ class _SelecteventState extends State<Selectevent> {
                               ? l1[index]['title']
                               : l1.last['title'],
                         ))
-                          .then((value) {
-                          // print("called ${value.id.toString()}");
+                          .then((value) async {
+                          print("called ${value.toString()}");
 
                           if (eventType == "Event") {
                             NotificationService()
@@ -194,19 +199,24 @@ class _SelecteventState extends State<Selectevent> {
                               s1.log('current $eventType');
                             });
                           } else {
+                            final data = await dbHelper.fetchCurrentRow(value);
                             s1.log('current $eventType');
 
-                            // final d1=DateTime.now();
-                            if (DateTime.parse(FormatDate.chnageDateFormat(fromDate, 'yyyy-MM-dd'))
+                            if (DateTime.parse(data[0].fromDate!)
                                 .isAtSameMomentAs(DateTime.parse(
                                     FormatDate.chnageDateFormat(
                                         DateTime.now(), 'yyyy-MM-dd')))) {
                               s1.log('if true');
-                              final d2 = DateTime.parse(fromDate.toString());
+                              final d2 = DateTime.parse(data[0].fromDate!);
+                              s1.log('d2$d2');
+                              final duration = DateTime.now();
+                              final d4 = d2.add(Duration(
+                                  hours: duration.hour,
+                                  minutes: duration.minute + 30));
 
-                              final d4 = d2.add(const Duration(minutes: 30));
                               NotificationService()
-                                  .scheduleNotificationPeriodically(
+                                  .scheduleNotificationPeriodically1(
+                                id: value,
                                 scheduleDate: d4,
                                 title: titleController.text,
                               );
@@ -235,44 +245,44 @@ class _SelecteventState extends State<Selectevent> {
                                       seconds: 00));
                               s1.log(d3.toString());
 
-                              final d4 = d2
-                                  .subtract(Duration(
-                                      hours: d2.hour,
-                                      minutes: d2.minute,
-                                      seconds: d2.second,
-                                      milliseconds: d2.millisecond,
-                                      microseconds: d2.microsecond))
-                                  .add(const Duration(
-                                    hours: 09,
-                                    minutes: 00,
-                                  ));
-                              final d5 = d2
-                                  .subtract(Duration(
-                                      hours: d2.hour,
-                                      minutes: d2.minute,
-                                      seconds: d2.second,
-                                      milliseconds: d2.millisecond,
-                                      microseconds: d2.microsecond))
-                                  .add(const Duration(
-                                    hours: 13,
-                                    minutes: 00,
-                                  ));
+                              // final d4 = d2
+                              //     .subtract(Duration(
+                              //         hours: d2.hour,
+                              //         minutes: d2.minute,
+                              //         seconds: d2.second,
+                              //         milliseconds: d2.millisecond,
+                              //         microseconds: d2.microsecond))
+                              //     .add(const Duration(
+                              //       hours: 09,
+                              //       minutes: 00,
+                              //     ));
+                              // final d5 = d2
+                              //     .subtract(Duration(
+                              //         hours: d2.hour,
+                              //         minutes: d2.minute,
+                              //         seconds: d2.second,
+                              //         milliseconds: d2.millisecond,
+                              //         microseconds: d2.microsecond))
+                              //     .add(const Duration(
+                              //       hours: 13,
+                              //       minutes: 00,
+                              //     ));
 
-                              s1.log(d4.toString());
-                              s1.log(d5.toString());
+                              // s1.log(d4.toString());
+                              // s1.log(d5.toString());
 
+                              // NotificationService()
+                              //     .scheduleNotificationPeriodically1(
+                              //   id: value,
+                              //   scheduleDate: d4,
+                              //   title: titleController.text,
+                              // );
                               NotificationService()
-                                  .scheduleNotificationPeriodically(
-                                scheduleDate: d4,
+                                  .scheduleNotificationPeriodically1(
+                                id: value,
+                                scheduleDate: d3,
                                 title: titleController.text,
                               );
-                              NotificationService()
-                                  .scheduleNotificationPeriodically(
-                                scheduleDate: d5,
-                                title: titleController.text,
-                              );
-
-                              // NotificationService().scheduleTask(title: titleController.text,scheduleDate: fromDate);
                             }
                           }
                         })
@@ -291,9 +301,12 @@ class _SelecteventState extends State<Selectevent> {
                                       ? l1[index]['color']
                                       : l1.last['color'],
                               title: titleController.text,
-                              fromDate: fromDate.toString(),
+                              fromDate: eventType.toString() == 'Event'
+                                  ? fromDate.toString()
+                                  : FormatDate.chnageDateFormat(
+                                      fromDate, 'yyyy-MM-dd'),
                               toDate: toDate.toString()))
-                          .then((value) {
+                          .then((value) async {
                           if (eventObj!.eventType == "Event") {
                             NotificationService().scheduleNotificationCurrent(
                                 scheduleDate:
@@ -301,27 +314,37 @@ class _SelecteventState extends State<Selectevent> {
                                 title: titleController.text,
                                 id: id!);
                           } else {
-                            if (DateTime.parse(FormatDate.chnageDateFormat(
-                                    fromDate, 'yyyy-MM-dd'))
+                            final data = await dbHelper.fetchCurrentRow(id!);
+                            s1.log('data is= $data');
+
+                            s1.log('current $eventType');
+                            s1.log('id= $value');
+                            s1.log('current ${data[0].fromDate}');
+                            if (DateTime.parse(data[0].fromDate!)
                                 .isAtSameMomentAs(DateTime.parse(
                                     FormatDate.chnageDateFormat(
                                         DateTime.now(), 'yyyy-MM-dd')))) {
-                              s1.log("samedate called");
-                              final d2 = DateTime.parse(fromDate.toString());
-
-                              final d4 = d2.add(const Duration(minutes: 30));
+                              s1.log('if true');
+                              final d2 = DateTime.parse(data[0].fromDate!);
+                              s1.log('d2$d2');
+                              final duration = DateTime.now();
+                              final d4 = d2.add(Duration(
+                                  hours: duration.hour,
+                                  minutes: duration.minute + 30));
+                              // final d5 =  d2.add(Duration(hours: duration.hour,minutes: duration.minute+2));
+                              // final d6 =  d2.add(Duration(hours: duration.hour,minutes: duration.minute+3));
                               NotificationService()
-                                  .scheduleNotificationPeriodically(
+                                  .scheduleNotificationPeriodically1(
+                                id: id!,
                                 scheduleDate: d4,
                                 title: titleController.text,
                               );
-
-                              s1.log(d4.toString());
                             } else if (DateTime.parse(
                                     FormatDate.chnageDateFormat(
                                         fromDate, 'yyyy-MM-dd'))
                                 .isBefore(DateTime.parse(
-                                    FormatDate.chnageDateFormat(DateTime.now(), 'yyyy-MM-dd')))) {
+                                    FormatDate.chnageDateFormat(
+                                        DateTime.now(), 'yyyy-MM-dd')))) {
                               s1.log("before called");
                               return;
                             } else {
@@ -336,45 +359,44 @@ class _SelecteventState extends State<Selectevent> {
                                       milliseconds: d2.millisecond))
                                   .add(Duration(
                                       days: -1, hours: 23, minutes: 30));
-                              final d4 = d2
-                                  .subtract(Duration(
-                                      hours: d2.hour,
-                                      minutes: d2.minute,
-                                      seconds: d2.second,
-                                      milliseconds: d2.millisecond,
-                                      microseconds: d2.microsecond))
-                                  .add(Duration(
-                                    hours: 09,
-                                    minutes: 00,
-                                  ));
-                              final d5 = d2
-                                  .subtract(Duration(
-                                      hours: d2.hour,
-                                      minutes: d2.minute,
-                                      seconds: d2.second,
-                                      milliseconds: d2.millisecond,
-                                      microseconds: d2.microsecond))
-                                  .add(Duration(
-                                    hours: 13,
-                                    minutes: 00,
-                                  ));
+
                               NotificationService().scheduleNotificationBefore(
                                   scheduleDate: d3,
                                   title: titleController.text,
-                                  id: value);
-                              NotificationService()
-                                  .scheduleNotificationPeriodically(
-                                scheduleDate: d4,
-                                title: titleController.text,
-                              );
-                              NotificationService()
-                                  .scheduleNotificationPeriodically(
-                                scheduleDate: d5,
-                                title: titleController.text,
-                              );
+                                  id: id!);
+
+                              //      final d4 = d2 .subtract(Duration(
+                              //         hours: d2.hour,
+                              //         minutes: d2.minute,
+                              //         seconds: d2.second,
+                              //         milliseconds: d2.millisecond,
+                              //         microseconds: d2.microsecond))
+                              //     .add(Duration(
+                              //       hours: 09,
+                              //       minutes: 00,
+                              //     ));
+                              // final d5 = d2
+                              //     .subtract(Duration(
+                              //         hours: d2.hour,
+                              //         minutes: d2.minute,
+                              //         seconds: d2.second,
+                              //         milliseconds: d2.millisecond,
+                              //         microseconds: d2.microsecond))
+                              //     .add(Duration(
+                              //       hours: 13,
+                              //       minutes: 00,
+                              //     ));
+                              // NotificationService()
+                              //     .scheduleNotificationPeriodically(
+                              //   scheduleDate: d4,
+                              //   title: titleController.text,
+                              // );
+                              // NotificationService()
+                              //     .scheduleNotificationPeriodically(
+                              //   scheduleDate: d5,
+                              //   title: titleController.text,
+                              // );
                               print(d3.toString());
-                              print(d4.toString());
-                              print(d5.toString());
                             }
                           }
                         });
@@ -450,10 +472,10 @@ class _SelecteventState extends State<Selectevent> {
                                   eventType = value.toString();
                                   error = false;
                                   error1 = false;
-                                   l1[index]['label'] = false;
+                                  l1[index]['label'] = false;
+                                  s1.log('current event is $eventType');
                                   // l1.last['label'] = true;
                                   setDateTimeNow();
-                                
                                 });
                               }),
                     const Text(
@@ -471,9 +493,10 @@ class _SelecteventState extends State<Selectevent> {
                                   error = false;
                                   error1 = false;
                                   l1[index]['label'] = false;
+                                  s1.log('current event is $eventType');
+
                                   // l1.last['label'] = true;
                                   setDateTimeNow();
-                                  
                                 });
                               }),
                     Flexible(
@@ -798,19 +821,21 @@ class _SelecteventState extends State<Selectevent> {
                                   child: ListView.builder(
                                       shrinkWrap: true,
                                       itemCount: l1.length,
-                                      itemBuilder: (ctx, index) => ListTile(
-                                            selected: l1[index]['label'] = true,
+                                      itemBuilder: (ctx, index1) => ListTile(
+                                            // selected: l1[index]['label'] == true,
                                             onTap: () {
                                               setState(() {
-                                                this.index = index;
+                                                this.index = index1;
                                                 widget.colorLabel = false;
+                                                l1[index]['label'] = true;
+                                                s1.log("color tap on $index");
                                                 Navigator.pop(context);
                                               });
                                             },
-                                            leading: Icon(l1[index]['icons'],
+                                            leading: Icon(l1[index1]['icons'],
                                                 color: Color(int.parse(
-                                                    l1[index]['color']))),
-                                            title: Text(l1[index]['title']),
+                                                    l1[index1]['color']))),
+                                            title: Text(l1[index1]['title']),
                                           )),
                                 )
                               ],

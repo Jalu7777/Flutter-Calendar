@@ -12,7 +12,7 @@ void notificationTapBackground(response) {
 }
 
 class NotificationService {
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   Future<void> initNotification() async {
@@ -21,11 +21,12 @@ class NotificationService {
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
 
     int sdk = androidInfo.version.sdkInt;
+    d1.log('sdk =$sdk');
     if (sdk > 32) {
       flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()!
-          .requestPermission();
+          .requestNotificationsPermission();
     } else {
       final status = await RequestPermission.getNotificationPermission();
       d1.log('permission$status');
@@ -120,6 +121,7 @@ class NotificationService {
   Future<void> deleteNotification(int id) async {
     print("delete id $id");
     await flutterLocalNotificationsPlugin.cancel(id);
+    // await flutterLocalNotificationsPlugin.cancelAll();
   }
 
   Future scheduleNotificationBefore(
@@ -128,7 +130,6 @@ class NotificationService {
       String? body,
       String? payLoad,
       required DateTime scheduleDate}) async {
-   
     print("id=$id");
 
     print("satisfied");
@@ -138,6 +139,4 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle);
   }
-
-
 }
